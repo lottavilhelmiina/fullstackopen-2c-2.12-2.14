@@ -88,9 +88,11 @@ function App() {
   }, []);
 
   useEffect(() => {
-    let apiKey = "33719288fca7cea679dab0f039a0306f";
-    let apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${capital}&appid=${apiKey}&units=metric`;
-    axios.get(apiUrl).then(displayWeather);
+    if (capital) {
+      let apiKey = "33719288fca7cea679dab0f039a0306f";
+      let apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${capital}&appid=${apiKey}&units=metric`;
+      axios.get(apiUrl).then(displayWeather);
+    }
   }, [capital]);
 
   function displayWeather(response) {
