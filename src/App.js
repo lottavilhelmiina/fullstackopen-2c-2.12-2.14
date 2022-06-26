@@ -16,12 +16,30 @@ const FilterList = ({
   filter,
   countries,
   handleButtonClick,
-  weather,
-  handleCapitalStateChange
 }) => {
+  const [weather, setWeather] = useState(null);
+
   const result = countries.filter((country) =>
     country.name.common.toLowerCase().includes(filter.toLowerCase())
   );
+
+  useEffect(() => {
+    if (result.length === 1 && result[0].capital[0]) {
+      const capital = result[0].capital[0];
+      let apiKey = "33719288fca7cea679dab0f039a0306f";
+      let apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${capital}&appid=${apiKey}&units=metric`;
+      axios.get(apiUrl).then(displayWeather);
+    }
+  }, [result]);
+
+  function displayWeather(response) {
+    setWeather({
+      temperature: response.data.main.temp,
+      wind: response.data.wind.speed,
+      icon: `http://openweathermap.org/img/wn/${response.data.weather[0].icon}@2x.png`,
+      description: response.data.weather[0].description
+    });
+  }
 
   if (result.length > 10) {
     return <p>Too many countries, specify another character.</p>;
@@ -43,7 +61,6 @@ const FilterList = ({
 
   return result.map((country) => (
     <React.Fragment key={country.name.common}>
-      {handleCapitalStateChange(country)}
       <h2>{country.name.common}</h2>
       <p>Capital: {country.capital}</p>
       <p>Area: {country.area} km2</p>
@@ -60,15 +77,17 @@ const FilterList = ({
         height="100vh"
         width="100vw"
       />
-      <h3>Weather in {country.capital}</h3>
-      <p>Temperature: {weather.temperature} °C</p>
-      <img
-        src={weather.icon}
-        alt={"Flag of " + country.name.common}
-        height="100vh"
-        width="100vw"
-      />
-      <p>Wind: {weather.wind} Km/H</p>
+      {weather && <>
+        <h3>Weather in {country.capital}</h3>
+        <p>Temperature: {weather.temperature} °C</p>
+        <img
+          src={weather.icon}
+          alt={"Flag of " + country.name.common}
+          height="100vh"
+          width="100vw"
+        />
+        <p>Wind: {weather.wind} Km/H</p>
+      </>}
     </React.Fragment>
   ));
 };
@@ -76,8 +95,6 @@ const FilterList = ({
 function App() {
   const [countries, setCountries] = useState([]);
   const [filter, setFilter] = useState("");
-  const [capital, setCapital] = useState("");
-  const [weather, setWeather] = useState({});
 
   useEffect(() => {
     console.log("effect");
@@ -87,24 +104,10 @@ function App() {
     });
   }, []);
 
-  useEffect(() => {
-    let apiKey = "33719288fca7cea679dab0f039a0306f";
-    let apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${capital}&appid=${apiKey}&units=metric`;
-    axios.get(apiUrl).then(displayWeather);
-  }, [capital]);
 
-  function displayWeather(response) {
-    setWeather({
-      temperature: response.data.main.temp,
-      wind: response.data.wind.speed,
-      icon: `http://openweathermap.org/img/wn/${response.data.weather[0].icon}@2x.png`,
-      description: response.data.weather[0].description
-    });
-  }
-
-  const handleCapitalStateChange = (country) => {
-    setCapital(country.capital[0]);
-  };
+  // const handleCapitalStateChange = (country) => {
+  //   setCapital(country.capital[0]);
+  // };
 
   console.log("render", countries.length, "countries");
   //tää alempi toimii ekaks mut jos päivittää sivun niin
@@ -127,8 +130,6 @@ function App() {
         filter={filter}
         countries={countries}
         handleButtonClick={handleButtonClick}
-        weather={weather}
-        handleCapitalStateChange={handleCapitalStateChange}
       />
     </div>
   );
